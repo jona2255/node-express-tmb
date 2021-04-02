@@ -1,9 +1,10 @@
 require("dotenv").config();
-const debug = require("debug")("mi-app:principal");
+const debug = require("debug")("tmb:principal");
 const express = require("express");
 const chalk = require("chalk");
 const { program } = require("commander");
 const morgan = require("morgan");
+const fetch = require("node-fetch");
 
 program.option("-p, --puerto <puerto>", "Puerto para el servidor");
 program.parse(process.argv);
@@ -27,40 +28,58 @@ server.on("error", err => {
 app.use(morgan("dev"));
 app.use(express.static("public"));
 
-
 app.get("/metro/lineas", (req, res, next) => {
-
-  res.json({
-    id: "Venga, hasta luego.",
-    linea: "L2",
-    despricion: "Descripción de la linea"
-  });
+  fetch(`${process.env.url_api_tmb}?app_id=${process.env.api_id}&app_key=${process.env.api_key}`)
+    .then(resp => resp.json())
+    .then(lineas => {
+      res.json(
+        lineas.features.map(linea => ({
+          id: linea.properties.ID_LINIA,
+          linea: linea.properties.NOM_LINIA,
+          despricion: linea.properties.DESC_LINIA
+        }))
+      );
+    });
 });
 app.get("/metro/linea/:linea?", (req, res, next) => {
-  res.json({
-    linea: req.params.linea,
-    descripcion: "Descripción de la línea",
-    paradas: [
-      {
-        id: "x",
-        nombre: "Nombre parada"
+  if (!req.params.linea) {
+    res.status(404).json({ error: true, mensaje: "Recurso no encontrado" });
+  }
+  fetch(`${process.env.url_api_tmb}?app_id=${process.env.api_id}&app_key=${process.env.api_key}`)
+    .then(resp => resp.json())
+    .then(lineas => {
+      if (!lineas.features.find(linea => linea.properties.NOM_LINIA === req.params.linea)) {
+        res.status(404).json({ error: true, mensaje: "Recurso no encontrado" });
+      } else {
+        const codiLinia = lineas.features.filter(linea => linea.properties.NOM_LINIA === req.params.linea);
+        fetch(`${process.env.url_api_tmb}/${codiLinia[0].properties.CODI_LINIA}/estacions?app_id=${process.env.api_id}&app_key=${process.env.api_key}`)
+          .then(resp => resp.json())
+          .then(paradas => {
+            res.json({
+              linea: req.params.linea,
+              descripcion: paradas.features[0].properties.DESC_SERVEI,
+              paradas: paradas.features.map(parada => ({
+                id: parada.properties.ID_ESTACIO,
+                nombre: parada.properties.NOM_ESTACIO
+              }))
+            });
+          });
       }
-    ]
-  });
+    });
 });
 
 app.get("*", (req, res, next) => {
   res.status(404).json({ error: true, mensaje: "Recurso no encontrado" });
 });
 app.put((req, res, next) => {
-  res.status(404).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
+  res.status(403).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
 });
 
 app.post((req, res, next) => {
-  res.status(404).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
+  res.status(403).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
 });
 app.delete((req, res, next) => {
-  res.status(404).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
+  res.status(403).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
 });
 
 app.use((err, req, res, next) => {
