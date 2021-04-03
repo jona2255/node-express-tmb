@@ -68,18 +68,18 @@ app.get("/metro/linea/:linea?", (req, res, next) => {
     });
 });
 
-app.get("*", (req, res, next) => {
-  res.status(404).json({ error: true, mensaje: "Recurso no encontrado" });
-});
-app.put((req, res, next) => {
+app.put("/*", (req, res, next) => {
   res.status(403).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
 });
 
-app.post((req, res, next) => {
+app.post("/*", (req, res, next) => {
   res.status(403).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
 });
-app.delete((req, res, next) => {
+app.delete("/*", (req, res, next) => {
   res.status(403).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
+});
+app.get("/*", (req, res, next) => {
+  res.status(404).json({ error: true, mensaje: "Recurso no encontrado" });
 });
 
 app.use((err, req, res, next) => {
