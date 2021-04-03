@@ -68,15 +68,17 @@ app.get("/metro/linea/:linea?", (req, res, next) => {
     });
 });
 
+const mensajeError = { error: true, mensaje: "Te pensabas que podías hackearme" };
+
 app.put("/*", (req, res, next) => {
-  res.status(403).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
+  res.status(403).json(mensajeError);
 });
 
 app.post("/*", (req, res, next) => {
-  res.status(403).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
+  res.status(403).json(mensajeError);
 });
 app.delete("/*", (req, res, next) => {
-  res.status(403).json({ error: true, mensaje: "Te pensabas que podías hackearme" });
+  res.status(403).json(mensajeError);
 });
 app.get("/*", (req, res, next) => {
   res.status(404).json({ error: true, mensaje: "Recurso no encontrado" });
